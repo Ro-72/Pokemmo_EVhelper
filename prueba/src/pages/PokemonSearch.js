@@ -5,22 +5,27 @@ function PokemonSearch({ setSavedPokemon, disableAutocomplete = false }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [pokemonData, setPokemonData] = useState(null);
+  const [allPokemon, setAllPokemon] = useState([]); // Store all Pokémon names
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Fetch all Pokémon names once
+    fetch(`https://pokeapi.co/api/v2/pokemon?limit=1000`)
+      .then(response => response.json())
+      .then(data => setAllPokemon(data.results))
+      .catch(() => setAllPokemon([]));
+  }, []);
+
+  useEffect(() => {
     if (!disableAutocomplete && searchTerm.length > 0) {
-      fetch(`https://pokeapi.co/api/v2/pokemon?limit=1000`)
-        .then(response => response.json())
-        .then(data => {
-          const filtered = data.results.filter(pokemon =>
-            pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-          setSuggestions(filtered);
-        });
+      const filtered = allPokemon
+        .filter(pokemon => pokemon.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        .slice(0, 5); // Limit suggestions to 5
+      setSuggestions(filtered);
     } else {
       setSuggestions([]);
     }
-  }, [searchTerm, disableAutocomplete]);
+  }, [searchTerm, disableAutocomplete, allPokemon]);
 
   const handleSearch = () => {
     if (!searchTerm.trim()) {
@@ -32,8 +37,32 @@ function PokemonSearch({ setSavedPokemon, disableAutocomplete = false }) {
         if (!response.ok) throw new Error('Pokémon no encontrado');
         return response.json();
       })
-      .then(data => setPokemonData(data))
-      .catch(() => setPokemonData(null));
+      .then(data => {
+        setPokemonData(data);
+        setSuggestions([]); // Clear suggestions after search
+      })
+      .catch(() => {
+        setPokemonData(null);
+        setSuggestions([]); // Clear suggestions even if search fails
+      });
+  };
+
+  const handleSuggestionClick = (name) => {
+    setSearchTerm(name);
+    setSuggestions([]); // Clear suggestions
+    fetch(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`)
+      .then(response => {
+        if (!response.ok) throw new Error('Pokémon no encontrado');
+        return response.json();
+      })
+      .then(data => {
+        setPokemonData(data);
+        setSuggestions([]); // Ensure suggestions are cleared after fetching
+      })
+      .catch(() => {
+        setPokemonData(null);
+        setSuggestions([]); // Ensure suggestions are cleared even if fetch fails
+      });
   };
 
   const savePokemon = () => {
@@ -56,7 +85,7 @@ function PokemonSearch({ setSavedPokemon, disableAutocomplete = false }) {
       {!disableAutocomplete && (
         <ul>
           {suggestions.map((pokemon, index) => (
-            <li key={index} onClick={() => setSearchTerm(pokemon.name)}>
+            <li key={index} onClick={() => handleSuggestionClick(pokemon.name)}>
               {pokemon.name}
             </li>
           ))}

@@ -60,7 +60,7 @@ function App() {
               >
                 ✖
               </button>
-              <PokemonSearch setSavedPokemon={setSavedPokemon} disableAutocomplete={true} />
+              <PokemonSearch setSavedPokemon={setSavedPokemon} disableAutocomplete={false} />
             </div>
             <div 
               style={{
