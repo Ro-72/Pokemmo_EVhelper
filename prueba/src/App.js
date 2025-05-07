@@ -14,6 +14,11 @@ function App() {
     speed: 0,
   });
   const [region, setRegion] = useState('Unova'); // Default region
+  const [showPopup, setShowPopup] = useState(false); // State for popup visibility
+
+  const togglePopup = () => {
+    setShowPopup(!showPopup);
+  };
 
   const handleChange = (stat, value) => {
     value = parseInt(value, 10);
@@ -66,7 +71,38 @@ function App() {
       <header className="App-header">
         <h1>POKEMMO Barras de Medición</h1>
         <div style={{ marginTop: '20px', textAlign: 'left', width: '80%' }}>
-          <h3>Distribución de EVs</h3>
+          <h3>
+            Distribución de EVs
+            <span
+              className="recommendation-icon"
+              onClick={togglePopup}
+              title="Ver recomendaciones"
+            >
+              ℹ️
+            </span>
+          </h3>
+          {showPopup && (
+            <div className="recommendation-popup smallpopup">
+              <h4>Recomendaciones</h4>
+              <ul>
+                {getRecommendations().map(({ stat, regionData }) => (
+                  <li key={stat}>
+                    <strong>{stat.toUpperCase()}:</strong>
+                    <ul>
+                      {regionData.map((entry, index) => (
+                        <li key={index}>
+                          <strong>Pokémon:</strong> {entry.pokemon} - <strong>Ubicación:</strong> {entry.location} ({entry.method}) - {entry.encounter}
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+              <button className="close-popup" onClick={togglePopup}>
+                Cerrar
+              </button>
+            </div>
+          )}
           <div>
             <label>Selecciona tu región:</label>
             <select value={region} onChange={(e) => setRegion(e.target.value)}>
