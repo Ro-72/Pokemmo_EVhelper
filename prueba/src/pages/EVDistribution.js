@@ -77,7 +77,8 @@ function EVDistribution({ savedPokemon }) {
     const currentTotal = Object.values(currentStats).reduce((sum, statValue) => sum + statValue, 0);
     const newTotal = currentTotal - currentStats[stat] + value;
 
-    if (newTotal <= maxTotal) {
+    if (type === 'ev' && newTotal <= maxTotal) {
+      // EV logic with redistribution
       const adjustedStats = { ...currentStats, [stat]: value };
       const remaining = maxTotal - newTotal;
 
@@ -86,22 +87,13 @@ function EVDistribution({ savedPokemon }) {
 
       otherStats.forEach((key) => {
         const additional = (remaining * adjustedStats[key]) / totalOtherValues || 0;
-        adjustedStats[key] = Math.min(type === 'ev' ? 255 : 31, adjustedStats[key] + Math.floor(additional));
+        adjustedStats[key] = Math.min(255, adjustedStats[key] + Math.floor(additional));
       });
 
       setStats(adjustedStats);
-    } else {
-      const excess = newTotal - maxTotal;
-      const otherStats = Object.keys(currentStats).filter((key) => key !== stat);
-      const totalOtherValues = otherStats.reduce((sum, key) => sum + currentStats[key], 0);
-
-      const adjustedStats = { ...currentStats, [stat]: value };
-      otherStats.forEach((key) => {
-        const reduction = (excess * currentStats[key]) / totalOtherValues || 0;
-        adjustedStats[key] = Math.max(0, currentStats[key] - Math.ceil(reduction));
-      });
-
-      setStats(adjustedStats);
+    } else if (type === 'iv' && newTotal <= maxTotal) {
+      // Simple IV logic without redistribution
+      setStats({ ...currentStats, [stat]: value });
     }
   };
 
