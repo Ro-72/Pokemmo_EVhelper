@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class EVDistribution extends StatefulWidget {
-  const EVDistribution({super.key});
+  final Map<String, dynamic>? savedPokemon;
+
+  const EVDistribution({super.key, this.savedPokemon});
 
   @override
   _EVDistributionState createState() => _EVDistributionState();
@@ -34,6 +36,33 @@ class _EVDistributionState extends State<EVDistribution> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            if (widget.savedPokemon != null) ...[
+              Text(
+                'Pokémon Guardado: ${widget.savedPokemon!['name'].toString().toUpperCase()}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Image.network(widget.savedPokemon!['sprites']['front_default']),
+              const SizedBox(height: 20),
+              const Text('Estadísticas:', style: TextStyle(fontSize: 16)),
+              ...widget.savedPokemon!['stats'].map<Widget>((stat) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(stat['stat']['name'].toString().toUpperCase()),
+                    LinearProgressIndicator(
+                      value: stat['base_stat'] / 255.0,
+                      backgroundColor: Colors.grey[300],
+                      color: Colors.blue,
+                    ),
+                    Text('Base Stat: ${stat['base_stat']}'),
+                  ],
+                );
+              }).toList(),
+              const SizedBox(height: 20),
+            ],
             Text(
               'Total EVs: $_totalEVs / $maxEV',
               style: const TextStyle(fontWeight: FontWeight.bold),
